@@ -1,5 +1,56 @@
 /* Home component stylesheet */
 
 .home-component{
-    background: tomato;
+    background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 183, 183, 0.63) 100%);
+    width: 100%;
+    min-height: 80vh;
+}
+
+.home-header{
+    width: 100%;
+    height: auto;
+    padding: 10px 100px;
+}
+
+.header-logo img{
+    width: 150px;
+}
+
+.header-links ul li{
+    display: inline-block;
+}
+
+.header-links ul {
+    margin-bottom: 0 !important;
+}
+
+.header-links li {
+    margin-left: 10px;
+}
+
+.header-links-item{
+    color: black;
+    font-weight: 500;
+}
+
+.header-links-item:hover {
+    color: black;
+    opacity: 0.85;
+}
+
+.home-vector{
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+@media only  screen and (max-width: 600px){
+    .home-header{
+        padding: 10px;
+    }
+    .header-logo img{
+        width: 100px;
+    }
 }
