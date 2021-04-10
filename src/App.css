@@ -3,3 +3,12 @@
 .app{
 
 }
+
+.kup-link{
+    cursor: pointer;
+}
+
+.kup-link:hover{
+    text-decoration: underline;
+    opacity: 0.85;
+}

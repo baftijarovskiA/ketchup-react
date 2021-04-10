@@ -1,5 +1,16 @@
 /* Footer component stylesheet */
 
 .footer-component{
-    background: chartreuse;
+    background: #0144B9;
+    padding: 3rem;
+    color: #ffffff;
+}
+
+.footer-logo{
+    width: 100%;
+    margin-bottom: 3rem;
+}
+
+.footer-logo img {
+    width: 150px;
 }
