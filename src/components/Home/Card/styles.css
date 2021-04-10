@@ -1,0 +1,16 @@
+/* Card component stylesheet */
+
+.kup-card{
+    width: 80%;
+    min-height: 500px;
+    margin: auto;
+    box-shadow: 4px 0 4px 2px rgba(0, 0, 0, 0.1), -4px 4px 4px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: #FFFFFF;
+}
+@media only  screen and (max-width: 600px){
+    .kup-card{
+        width: 100%;
+        margin-top: 2rem;
+    }
+}
