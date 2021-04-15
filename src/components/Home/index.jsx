@@ -3,7 +3,7 @@ import './styles.css';
 import Footer from "../Footer";
 import Header from "./Header";
 import Vector from '../../assets/girl_vector.png';
-import Card from "./Card";
+import Card from "../Card";
 
 class Home extends Component{
     render() {
