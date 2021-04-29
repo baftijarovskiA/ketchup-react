@@ -17,7 +17,8 @@ class Meet extends Component{
             camMuted: true,
             micIcon: micMuted,
             micMuted: true,
-            myStream: null
+            myStream: null,
+            chat: true
         }
         this.toggleMicIcon = this.toggleMicIcon.bind(this);
         this.toggleCamIcon = this.toggleCamIcon.bind(this);
@@ -106,15 +107,28 @@ class Meet extends Component{
 
     endCall = () => {
         let stream = this.state.myStream;
-        stream.getTracks().forEach( track => {
-            track.stop();
-        })
+        if (stream !== "" &&  stream !== null){
+            stream.getTracks().forEach( track => {
+                track.stop();
+            })
+        }
         this.props.history.push('/');
     }
 
-    render() {
-        const { camIcon, micIcon } = this.state;
+    toggleView = (view) => {
+        if (view === 'members'){
+            this.setState({
+                chat: false
+            })
+        } else {
+            this.setState({
+                chat: true
+            })
+        }
+    }
 
+    render() {
+        const { camIcon, micIcon, chat, myStream } = this.state;
         return(
             <div className='meet-component' >
                 <div className="video-container" >
@@ -123,8 +137,33 @@ class Meet extends Component{
                     </div>
                     <div className="video-chat" >
                         <div className="my-video" >
-                            <video id="my-video-stream" className="my-video-item" style={{borderRadius: '10px'}} muted autoPlay/>
+                            {
+                                myStream !== null ?
+                                    myStream.active ? '' : (<div className="my-video-init">AB</div>) : (<div className="my-video-init">AB</div>)
+                            }
+                            <video id="my-video-stream" className="my-video-item radius-10" muted autoPlay/>
                         </div>
+                        <div className="choose-display">
+                            <div className={`select-item ${!chat ? 'selected': ''}`}>
+                                <span className="cursor-pointer" onClick={this.toggleView.bind(this, 'members')} >Members</span>
+                            </div>
+                            <div className={`select-item ${chat ? 'selected': ''}`}>
+                                <span className="cursor-pointer" onClick={this.toggleView.bind(this, 'chat')} >Chat</span>
+                            </div>
+                        </div>
+                        {
+                            !chat ? (
+                                <React.Fragment>
+                                    <div className="my-video" >
+                                        <video id="my-video-stream" className="my-video-item radius-10" muted autoPlay/>
+                                    </div>
+                                </React.Fragment>
+                            ) : (
+                                <div className="chat-area">
+
+                                </div>
+                            )
+                        }
                     </div>
                     <div className="video-controls" >
                         <div className="d-flex justify-content-center align-items-center h-100">
