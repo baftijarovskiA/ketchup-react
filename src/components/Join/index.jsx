@@ -1,16 +1,23 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
+import { withRouter } from 'react-router-dom';
 import './styles.css';
 
-const Join = (props) => {
+const Join = withRouter((props) => {
 
     const [selected, setSelected] = useState('join')
     const [joinCode, setJoinCode] = useState('');
     const [startCode, setStartCode] = useState('');
 
-    useEffect(() => {
-        let responseRoom = 'abcd123';
-        setStartCode(responseRoom);
-    }, [])
+    const makeId = (length) => {
+        let result = [];
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let charactersLength = characters.length;
+        for ( let i = 0; i < length; i++ ) {
+            result.push(characters.charAt(Math.floor(Math.random() *
+                charactersLength)));
+        }
+        return result.join('');
+    }
 
     const onJoinMeeting = (e) => {
         e.preventDefault();
@@ -19,7 +26,7 @@ const Join = (props) => {
 
     const onStartMeeting = (e) => {
         e.preventDefault();
-        console.log('Start a meeting, code: ' + startCode);
+        props.history.push(`/meet/${startCode}`);
     }
 
     const onScheduleMeeting = () => {
@@ -33,7 +40,7 @@ const Join = (props) => {
                     <span className={`kup-tab-btn ${selected === 'join' ? 'tab-active' : ''}`} onClick={() => setSelected('join')} >Join a meeting</span>
                 </div>
                 <div className="col-6 col-md-6">
-                    <span className={`kup-tab-btn ${selected === 'start' ? 'tab-active' : ''}`} onClick={() => setSelected('start')} >Start a meeting</span>
+                    <span className={`kup-tab-btn ${selected === 'start' ? 'tab-active' : ''}`} onClick={() => {setSelected('start'); setStartCode(makeId(10));}} >Start a meeting</span>
                 </div>
             </div>
             <div className="mt-5 px-4 text-left">
@@ -68,6 +75,6 @@ const Join = (props) => {
             </div>
         </React.Fragment>
     )
-}
+})
 
 export default Join;
