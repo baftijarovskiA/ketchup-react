@@ -7,7 +7,7 @@ class Card extends Component{
     constructor() {
         super();
         this.state = {
-            logged: false
+            logged: true
         }
     }
 
