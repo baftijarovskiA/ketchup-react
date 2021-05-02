@@ -120,15 +120,7 @@
     color: #FFFFFF;
 }
 
-.chat-area{
-    width: 100%;
-    height: calc(100% - 240px);
-    background: #FFFFFF;
-    border-radius: 10px;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-    overflow-y: scroll;
-    overflow-x: hidden;
-}
+
 
 .custom-rotate{
     transform: rotate(135deg);

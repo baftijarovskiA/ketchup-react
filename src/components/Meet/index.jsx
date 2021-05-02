@@ -7,6 +7,9 @@ import endCall from '../../assets/icons/end_call.png'
 import mic from '../../assets/icons/mic.png'
 import micMuted from '../../assets/icons/muted_mic.png'
 import {withRouter} from "react-router-dom";
+import Chat from "../Chat";
+import { v4 } from 'uuid';
+
 const socket = io('http://localhost:3001', {transports: ['websocket']});
 
 class Meet extends Component{
@@ -18,16 +21,32 @@ class Meet extends Component{
             micIcon: micMuted,
             micMuted: true,
             myStream: null,
-            chat: true
+            chat: true,
+            userId: '',
+            roomId: '',
+            new_message: '',
+            chatMessages: []
         }
         this.toggleMicIcon = this.toggleMicIcon.bind(this);
         this.toggleCamIcon = this.toggleCamIcon.bind(this);
         this.endCall = this.endCall.bind(this);
+        this.onChange = this.onChange.bind(this);
     }
 
     componentDidMount() {
         let roomId = this.props.match.params.id;
-        socket.emit('join-room', roomId, 100 );
+        let userId = v4();
+        this.setState({
+            userId: userId,
+            roomId: roomId
+        })
+        socket.emit('join-room', userId, roomId );
+        socket.on('message', (m) => {
+            this.setState({
+                chatMessages: [...this.state.chatMessages, m],
+                new_message: ''
+            })
+        })
     }
 
     getMediaDevices = (video, audio) => {
@@ -127,6 +146,26 @@ class Meet extends Component{
         }
     }
 
+    onChange(e){
+        this.setState({
+            [e.target.name]: e.target.value
+        })
+    }
+
+    onSendMessage = (e) => {
+        e.preventDefault()
+        if (this.state.new_message === "") return
+        const m = {
+            user: this.state.userId,
+            room: this.state.roomId,
+            message: this.state.new_message
+        }
+        socket.emit('message', m)
+        this.setState({
+            new_message: ''
+        })
+    }
+
     render() {
         const { camIcon, micIcon, chat, myStream } = this.state;
         return(
@@ -159,9 +198,12 @@ class Meet extends Component{
                                     </div>
                                 </React.Fragment>
                             ) : (
-                                <div className="chat-area">
-
-                                </div>
+                                <Chat
+                                    room={this.state.roomId}
+                                    user={this.state.userId}
+                                    chatMessages={this.state.chatMessages}
+                                    socket={socket}
+                                />
                             )
                         }
                     </div>
