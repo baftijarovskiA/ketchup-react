@@ -32,7 +32,7 @@ const Chat = ({room, user, chatMessages,  socket}) => {
             <div className="chat-input" >
                 <form onSubmit={onSendMessage} >
                     <div className="form-group p-2" >
-                        <input type="text" className="form-control w-100" value={message} name="new_message" onChange={(e) => setMessage(e.target.value)} />
+                        <input type="text" className="form-control w-100" value={message} onChange={(e) => setMessage(e.target.value)} />
                     </div>
                 </form>
             </div>

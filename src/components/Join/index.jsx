@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
 import { withRouter } from 'react-router-dom';
 import './styles.css';
+import copyIcon from '../../assets/icons/copy.svg'
 
 const Join = withRouter((props) => {
 
     const [selected, setSelected] = useState('join')
     const [joinCode, setJoinCode] = useState('');
     const [startCode, setStartCode] = useState('');
+    const [copied, setCopied] = useState(false)
 
     const makeId = (length) => {
         let result = [];
@@ -21,7 +23,7 @@ const Join = withRouter((props) => {
 
     const onJoinMeeting = (e) => {
         e.preventDefault();
-        console.log('Join a meeting, code: ' + joinCode);
+        props.history.push(`/meet/${joinCode}`);
     }
 
     const onStartMeeting = (e) => {
@@ -31,6 +33,14 @@ const Join = withRouter((props) => {
 
     const onScheduleMeeting = () => {
         console.log('Schedule a meeting');
+    }
+
+    const copyCode = () => {
+        navigator.clipboard.writeText(startCode);
+        setCopied(true)
+        setTimeout(() => {
+            setCopied(false)
+        }, 1000)
     }
 
     return(
@@ -60,9 +70,13 @@ const Join = withRouter((props) => {
                     ) : (
                         <React.Fragment>
                             <form onSubmit={onStartMeeting} >
-                                <div className="form-group">
+                                <div className="form-group position-relative">
                                     <label htmlFor="code" className="kup-label" >Code</label>
                                     <input type="text" id="code" placeholder="Code" className="form-control" value={startCode} disabled />
+                                    <span className="copy-icon" onClick={copyCode} title="Copy code" >
+                                        { copied ? (<span className="badge badge-dark mr-2">Copied!</span>) : '' }
+                                        <img src={copyIcon} alt="Copy button" width={20} height={20} />
+                                    </span>
                                 </div>
                                 <div className="text-center pt-2">
                                     <input type="submit" className="kup-button-default mr-0 mr-sm-0 mr-md-0 mr-lg-0 mr-xl-2 mb-3 mb-sm-3 mb-md-3 mb-lg-3 mb-xl-0" value="Start Now" />

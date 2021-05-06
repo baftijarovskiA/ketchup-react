@@ -1,2 +1,8 @@
 /* Join component stylesheet */
 
+.copy-icon{
+    position: absolute;
+    top: 38px;
+    right: 30px;
+    cursor: pointer;
+}
