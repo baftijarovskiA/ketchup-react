@@ -1,25 +1,13 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import './styles.css';
-import Connect from "../Connect";
 import Join from "../Join";
 
-class Card extends Component{
-    constructor() {
-        super();
-        this.state = {
-            logged: true
-        }
-    }
-
+class Card extends Component {
     render() {
-        const { logged } = this.state;
-
-        return(
+        return (
             <div className='kup-card' >
                 <div className="w-100 pt-3 pb-4" >
-                    {
-                        logged ? <Join /> : <Connect />
-                    }
+                    <Join />
                 </div>
             </div>
         )

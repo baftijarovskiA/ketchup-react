@@ -16,7 +16,7 @@
     height: calc(100vh - 100px);
     left: 0;
     top: 0;
-    background: aqua;
+    background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 183, 183, 0.63) 100%);
 }
 
 .video-controls{
