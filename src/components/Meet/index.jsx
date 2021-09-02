@@ -12,7 +12,7 @@ import Peer from 'simple-peer';
 import { v4 } from "uuid";
 import Members from "../Members";
 
-const socket = io('http://localhost:3005', { transports: ['websocket'] });
+const socket = io('https://ketchup-server.herokuapp.com:3005', { transports: ['websocket'] });
 
 const Meet = (props) => {
 
