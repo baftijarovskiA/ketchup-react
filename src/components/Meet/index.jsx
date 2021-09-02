@@ -1,229 +1,177 @@
-import React, {Component} from 'react';
-import io from 'socket.io-client';
-import './styles.css';
+import React, { useEffect, useRef, useState } from "react"
+import './styles.css'
+import { useParams } from "react-router-dom";
 import cam from '../../assets/icons/cam.png'
-import camMuted from '../../assets/icons/muted_cam.png'
+import camIconMuted from '../../assets/icons/muted_cam.png'
 import endCall from '../../assets/icons/end_call.png'
 import mic from '../../assets/icons/mic.png'
-import micMuted from '../../assets/icons/muted_mic.png'
-import {withRouter} from "react-router-dom";
+import micIconMuted from '../../assets/icons/muted_mic.png'
 import Chat from "../Chat";
-import { v4 } from 'uuid';
+import io from "socket.io-client";
+import Peer from 'simple-peer';
+import { v4 } from "uuid";
+import Members from "../Members";
 
-const socket = io('http://localhost:3001', {transports: ['websocket']});
+const socket = io('http://localhost:3005', { transports: ['websocket'] });
 
-class Meet extends Component{
-    constructor() {
-        super();
-        this.state = {
-            camIcon: camMuted,
-            camMuted: true,
-            micIcon: micMuted,
-            micMuted: true,
-            myStream: null,
-            chat: true,
-            userId: '',
-            roomId: '',
-            new_message: '',
-            chatMessages: []
-        }
-        this.toggleMicIcon = this.toggleMicIcon.bind(this);
-        this.toggleCamIcon = this.toggleCamIcon.bind(this);
-        this.endCall = this.endCall.bind(this);
-        this.onChange = this.onChange.bind(this);
-    }
+const Meet = (props) => {
 
-    componentDidMount() {
-        let roomId = this.props.match.params.id;
-        let userId = v4();
-        this.setState({
-            userId: userId,
-            roomId: roomId
-        })
-        socket.emit('join-room', userId, roomId );
+    const [peers, setPeers] = useState([]);
+    const userVideo = useRef(null);
+    const peersRef = useRef([]);
+    const { id } = useParams()
+
+    const [user, setUser] = useState(null)
+    const [chatMessages, setChatMessages] = useState([])
+
+    const [camMuted, setCamMuted] = useState(false)
+    const [camIcon, setCamIcon] = useState(cam)
+    const [micMuted, setMicMuted] = useState(false)
+    const [micIcon, setMicIcon] = useState(mic)
+
+    useEffect(() => {
+        setUser(v4())
+    }, [])
+
+    useEffect(() => {
         socket.on('message', (m) => {
-            this.setState({
-                chatMessages: [...this.state.chatMessages, m],
-                new_message: ''
-            })
-        })
-    }
-
-    getMediaDevices = (video, audio) => {
-        navigator.mediaDevices.getUserMedia({
-            video: video,
-            audio: audio
-        }).then( stream => {
-            this.setState({
-                myStream: stream
-            })
-            this.addMyVideoStream(stream);
-        }).catch( err => console.log('ERROR', err))
-    }
-
-    addMyVideoStream = (stream) => {
-        let video = document.getElementById('my-video-stream');
-        video.srcObject = stream;
-        video.addEventListener('loadedmetadata', () => {
-            video.play();
-        })
-    }
-
-    startMedia = (type) => {
-        const prevVideo = !this.state.camMuted;
-        const prevAudio = !this.state.micMuted;
-        if (type === 'video'){
-            this.getMediaDevices(true, prevAudio);
-        } else {
-            this.getMediaDevices(prevVideo, true)
-        }
-    }
-
-    stopMedia = (type) => {
-        let stream = this.state.myStream;
-        stream.getTracks().forEach( track => {
-            if (track.kind === type){
-                track.stop();
-                console.log(track)
+            if (m.room === id) {
+                setChatMessages([...chatMessages, m])
             }
         })
-        if (type === 'video'){
-            document.getElementById('my-video-stream').srcObject = null;
-        }
-    }
 
-    toggleCamIcon = () => {
-        if(this.state.camMuted){
-            this.setState({
-                camIcon: cam,
-                camMuted: false,
-            })
-            this.startMedia('video');
-        } else {
-            this.setState({
-                camIcon: camMuted,
-                camMuted: true,
-            });
-            this.stopMedia('video')
-        }
-    }
+    }, [id, chatMessages])
 
-    toggleMicIcon = () => {
-        if(this.state.micMuted){
-            this.setState({
-                micIcon: mic,
-                micMuted: false
-            })
-            this.startMedia('audio')
-        } else {
-            this.setState({
-                micIcon: micMuted,
-                micMuted: true
-            })
-            this.stopMedia('audio')
-        }
-    }
+    const [videoConstraints] = useState({
+        height: window.innerHeight / 3,
+        width: window.innerWidth / 2
+    });
 
-    endCall = () => {
-        let stream = this.state.myStream;
-        if (stream !== "" &&  stream !== null){
-            stream.getTracks().forEach( track => {
-                track.stop();
-            })
-        }
-        this.props.history.push('/');
-    }
+    useEffect(() => {
 
-    toggleView = (view) => {
-        if (view === 'members'){
-            this.setState({
-                chat: false
-            })
-        } else {
-            this.setState({
-                chat: true
-            })
-        }
-    }
+        const getMedia = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true });
+                userVideo.current.srcObject = stream;
+                socket.emit("join room", id);
 
-    onChange(e){
-        this.setState({
-            [e.target.name]: e.target.value
+                socket.on("all users", (users) => {
+                    const peers = [];
+                    users.forEach(userID => {
+                        const peer = createPeer(userID, socket.id, stream);
+                        peersRef.current.push({
+                            peerID: userID,
+                            peer,
+                        })
+                        peers.push(peer);
+                    })
+                    setPeers(peers);
+                })
+
+                socket.on("user joined", payload => {
+                    const peer = addPeer(payload.signal, payload.callerID, stream);
+                    peersRef.current.push({
+                        peerID: payload.callerID,
+                        peer,
+                    })
+
+                    setPeers(users => [...users, peer]);
+                });
+
+                socket.on("receiving returned signal", payload => {
+                    const item = peersRef.current.find(p => p.peerID === payload.id);
+                    item.peer.signal(payload.signal);
+                });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        getMedia()
+
+    }, [id, videoConstraints])
+
+    function createPeer(userToSignal, callerID, stream) {
+        const peer = new Peer({
+            initiator: true,
+            trickle: false,
+            stream,
+        });
+
+        peer.on("signal", signal => {
+            socket.emit("sending signal", { userToSignal, callerID, signal })
         })
+
+        return peer;
     }
 
-    onSendMessage = (e) => {
-        e.preventDefault()
-        if (this.state.new_message === "") return
-        const m = {
-            user: this.state.userId,
-            room: this.state.roomId,
-            message: this.state.new_message
-        }
-        socket.emit('message', m)
-        this.setState({
-            new_message: ''
+    function addPeer(incomingSignal, callerID, stream) {
+        const peer = new Peer({
+            initiator: false,
+            trickle: false,
+            stream,
         })
+
+        peer.on("signal", signal => {
+            socket.emit("returning signal", { signal, callerID })
+        })
+
+        peer.signal(incomingSignal);
+
+        return peer;
     }
 
-    render() {
-        const { camIcon, micIcon, chat, myStream } = this.state;
-        return(
-            <div className='meet-component' >
-                <div className="video-container" >
-                    <div className="video-data">
-                        <video className="my-video-item" muted src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" autoPlay loop />
+    const muteMic = () => {
+        let myStream = userVideo.current.srcObject;
+        if (myStream) {
+            myStream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+            setMicMuted(!micMuted)
+            setMicIcon(!micMuted ? micIconMuted : mic)
+        }
+    }
+
+    const muteCam = () => {
+        let myStream = userVideo.current.srcObject;
+        if (myStream) {
+            myStream.getVideoTracks().forEach(track => track.enabled = !track.enabled);
+            setCamMuted(!camMuted)
+            setCamIcon(!camMuted ? camIconMuted : cam)
+        }
+    }
+
+    return (
+        <div className='meet-component' >
+            <div className="video-container" >
+                <div className="video-data">
+                    <Members peers={peers} />
+                </div>
+                <div className="video-chat" >
+                    <div className="my-video" >
+                        <video id="my-video-stream" className="my-video-item radius-10" muted ref={userVideo} autoPlay playsInline />
                     </div>
-                    <div className="video-chat" >
-                        <div className="my-video" >
-                            {
-                                myStream !== null ?
-                                    myStream.active ? '' : (<div className="my-video-init">AB</div>) : (<div className="my-video-init">AB</div>)
-                            }
-                            <video id="my-video-stream" className="my-video-item radius-10" muted autoPlay/>
+                    <Chat
+                        user={user}
+                        room={id}
+                        socket={socket}
+                        chatMessages={chatMessages}
+                    />
+                </div>
+                <div className="video-controls" >
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <div className="video-controls-item" >
+                            <img src={camIcon} className="w-100" style={{ cursor: 'pointer' }} alt="Icon" onClick={muteCam} />
                         </div>
-                        <div className="choose-display">
-                            <div className={`select-item ${!chat ? 'selected': ''}`}>
-                                <span className="cursor-pointer" onClick={this.toggleView.bind(this, 'members')} >Members</span>
-                            </div>
-                            <div className={`select-item ${chat ? 'selected': ''}`}>
-                                <span className="cursor-pointer" onClick={this.toggleView.bind(this, 'chat')} >Chat</span>
-                            </div>
+                        <div className="video-controls-item" >
+                            <img src={micIcon} className="w-100" style={{ cursor: 'pointer' }} alt="Icon" onClick={muteMic} />
                         </div>
-                        {
-                            !chat ? (
-                                <React.Fragment>
-                                    <div className="my-video" >
-                                        <video id="my-video-stream" className="my-video-item radius-10" muted autoPlay/>
-                                    </div>
-                                </React.Fragment>
-                            ) : (
-                                <Chat
-                                    room={this.state.roomId}
-                                    user={this.state.userId}
-                                    chatMessages={this.state.chatMessages}
-                                    socket={socket}
-                                />
-                            )
-                        }
-                    </div>
-                    <div className="video-controls" >
-                        <div className="d-flex justify-content-center align-items-center h-100">
-                            <div className="video-controls-item" >
-                                <img src={camIcon} className="w-100" style={{cursor: 'pointer'}} alt="Icon" onClick={this.toggleCamIcon} />
-                            </div>
-                            <div className="video-controls-item" >
-                                <img src={micIcon} className="w-100" style={{cursor: 'pointer'}} alt="Icon" onClick={this.toggleMicIcon} />
-                            </div>
-                            <div className="video-controls-item" >
-                                <img src={endCall} className="w-100 custom-rotate" style={{cursor: 'pointer'}} alt="Icon" onClick={this.endCall} />
-                            </div>
+                        <div className="video-controls-item" >
+                            <img src={endCall} className="w-100 custom-rotate" style={{ cursor: 'pointer' }} alt="Icon" onClick={() => window.location.href = "/"} />
                         </div>
                     </div>
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
 }
 
-export default withRouter(Meet);
+export default Meet

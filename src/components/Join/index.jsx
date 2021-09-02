@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import './styles.css';
 
@@ -12,7 +12,7 @@ const Join = withRouter((props) => {
         let result = [];
         let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let charactersLength = characters.length;
-        for ( let i = 0; i < length; i++ ) {
+        for (let i = 0; i < length; i++) {
             result.push(characters.charAt(Math.floor(Math.random() *
                 charactersLength)));
         }
@@ -21,7 +21,8 @@ const Join = withRouter((props) => {
 
     const onJoinMeeting = (e) => {
         e.preventDefault();
-        console.log('Join a meeting, code: ' + joinCode);
+        if (joinCode.length !== 10) return
+        props.history.push(`/meet/${joinCode}`);
     }
 
     const onStartMeeting = (e) => {
@@ -33,14 +34,14 @@ const Join = withRouter((props) => {
         console.log('Schedule a meeting');
     }
 
-    return(
+    return (
         <React.Fragment>
             <div className="row mt-2">
                 <div className="col-6 col-md-6">
                     <span className={`kup-tab-btn ${selected === 'join' ? 'tab-active' : ''}`} onClick={() => setSelected('join')} >Join a meeting</span>
                 </div>
                 <div className="col-6 col-md-6">
-                    <span className={`kup-tab-btn ${selected === 'start' ? 'tab-active' : ''}`} onClick={() => {setSelected('start'); setStartCode(makeId(10));}} >Start a meeting</span>
+                    <span className={`kup-tab-btn ${selected === 'start' ? 'tab-active' : ''}`} onClick={() => { setSelected('start'); setStartCode(makeId(10)); }} >Start a meeting</span>
                 </div>
             </div>
             <div className="mt-5 px-4 text-left">

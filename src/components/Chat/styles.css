@@ -2,7 +2,7 @@
 
 .chat-area{
     width: 100%;
-    height: calc(100% - 240px);
+    height: calc(100% - 180px);
     background: #FFFFFF;
     border-radius: 10px;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
