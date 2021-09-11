@@ -23,7 +23,7 @@ const Members = ({ peers }) => {
                 <div className="row" >
                     {
                         peers.map((peer, index) => (
-                            <div className="col-6 col-md-3 mb-4">
+                            <div key={index} className="col-6 col-md-3 mb-4">
                                 <Video key={index} peer={peer} />
                             </div>
                         ))
